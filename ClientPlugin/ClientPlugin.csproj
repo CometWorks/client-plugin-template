@@ -63,10 +63,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
-  </PropertyGroup>
-
   <ItemGroup>
     <Reference Include="DirectShowLib, Version=2.1.0.1599, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Bin64Dir)DirectShowLib.dll</HintPath>
@@ -164,7 +160,6 @@
       <HintPath>$(Bin64Dir)Steamworks.NET.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System" />
     <Reference Include="System.AppContext, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>$(Bin64Dir)System.AppContext.dll</HintPath>
       <Private>False</Private>
@@ -213,8 +208,6 @@
       <HintPath>$(Bin64Dir)System.Console.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Data.Common, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>$(Bin64Dir)System.Data.Common.dll</HintPath>
       <Private>False</Private>
@@ -531,12 +524,10 @@
       <HintPath>$(Bin64Dir)System.Threading.Timer.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml" />
     <Reference Include="System.Xml.ReaderWriter, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>$(Bin64Dir)System.Xml.ReaderWriter.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Xml.Serialization" />
     <Reference Include="System.Xml.XDocument, Version=4.0.11.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <HintPath>$(Bin64Dir)System.Xml.XDocument.dll</HintPath>
       <Private>False</Private>
@@ -641,12 +632,6 @@
       <HintPath>$(Bin64Dir)VRage.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="Deploy.bat" />
-    <Content Include="Deploy.sh" />
-    <None Include="App.config" />
   </ItemGroup>
 
   <ItemGroup>
