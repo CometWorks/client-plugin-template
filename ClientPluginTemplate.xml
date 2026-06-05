@@ -44,8 +44,16 @@
     </DependencyIds> 
     -->
 
+    <!-- Optional tag that restricts the plugin to specific runtimes (case sensitive: NETFramework, NETCoreApp). List multiple, comma separated. If omitted, the runtime is detected from the compiled assembly.
+    <Runtimes>NETFramework,NETCoreApp</Runtimes>
+    -->
+
+    <!-- Optional tag that restricts the plugin to specific platforms (case sensitive: Windows, Linux). List multiple, comma separated. If omitted, the plugin loads on all platforms.
+    <Platforms>Windows,Linux</Platforms>
+    -->
+
     <!-- Optional tag that specifies whether the plugin is hidden. Hidden plugins only appear when they are enabled or searched for in the search box.
-    <Hidden>true</Hidden> 
+    <Hidden>true</Hidden>
     -->
 
     <!-- The current plugin version's commit hash -->
