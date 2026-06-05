@@ -66,10 +66,13 @@ internal class SliderAttribute : Attribute, IElement
 
             screen.OnConfirmed += (value) => element.Value = value;
 
-            // Much needed visual change requires reflection due to private types
+            // Hide the settings screen behind this dialog. The CanHideOthers
+            // setter is protected, so reflection is needed. Use ?. so the dialog
+            // still opens (just without the hide effect) on game versions where
+            // the property has been renamed or removed.
             typeof(MyGuiScreenBase)
-                .GetField("m_canHideOthers", BindingFlags.NonPublic | BindingFlags.Instance)
-                .SetValue(screen, true);
+                .GetProperty("CanHideOthers", BindingFlags.Public | BindingFlags.Instance)
+                ?.SetValue(screen, true);
 
             MyGuiSandbox.AddScreen(screen);
             return true;
