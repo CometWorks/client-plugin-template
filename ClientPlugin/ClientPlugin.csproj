@@ -288,9 +288,9 @@
   -->
   <Target Name="VerifyProps" BeforeTargets="BeforeBuild">
     <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))"
-          Command="call &quot;$(SolutionDir)verify_props.bat&quot; &quot;$(Bin64)&quot;" />
+          Command="call &quot;$(RepoRoot)verify_props.bat&quot; &quot;$(Bin64)&quot;" />
     <Exec Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
-          Command="sh &quot;$(SolutionDir)verify_props.sh&quot; &quot;$(Bin64)&quot;" />
+          Command="sh &quot;$(RepoRoot)verify_props.sh&quot; &quot;$(Bin64)&quot;" />
   </Target>
 
   <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(RunPostBuildEvent)' != 'Never' AND '$(TargetFramework)' != ''">
