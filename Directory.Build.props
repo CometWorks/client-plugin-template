@@ -4,7 +4,8 @@
     <!-- Folder containing SpaceEngineers.exe (empty = auto-detect from Steam) -->
     <Bin64></Bin64>
 
-    <!-- Pulsar plugin loader folder used for automatic deployment (empty = auto-detect) -->
+    <!-- Pulsar folder to deploy the plugin into after each build (empty = no deployment),
+         for example $(APPDATA)\Pulsar on Windows or $(HOME)/.config/Pulsar on Linux -->
     <Pulsar></Pulsar>
   </PropertyGroup>
 
@@ -33,17 +34,12 @@
     <!-- Steam fills in InstallLocation for game apps (244850) only, it is left empty
          for tool apps like the Dedicated Server (298740). -->
     <SteamGameDir Condition="'$(SteamGameDir)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 244850@InstallLocation)</SteamGameDir>
-
-    <Pulsar Condition="'$(Pulsar)' == '' and '$(APPDATA)' != ''">$(APPDATA)\Pulsar</Pulsar>
   </PropertyGroup>
 
   <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows')) and '$(HOME)' != ''">
     <SteamPath Condition="'$(SteamPath)' == '' and Exists('$(HOME)/.steam/steam/steamapps')">$(HOME)/.steam/steam</SteamPath>
     <SteamPath Condition="'$(SteamPath)' == '' and Exists('$(HOME)/.local/share/Steam/steamapps')">$(HOME)/.local/share/Steam</SteamPath>
     <SteamPath Condition="'$(SteamPath)' == '' and Exists('$(HOME)/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps')">$(HOME)/.var/app/com.valvesoftware.Steam/.local/share/Steam</SteamPath>
-
-    <Pulsar Condition="'$(Pulsar)' == '' and '$(XDG_CONFIG_HOME)' != ''">$(XDG_CONFIG_HOME)/Pulsar</Pulsar>
-    <Pulsar Condition="'$(Pulsar)' == ''">$(HOME)/.config/Pulsar</Pulsar>
   </PropertyGroup>
 
   <!-- Locate the Steam library folder holding the game, so non-default libraries work too -->

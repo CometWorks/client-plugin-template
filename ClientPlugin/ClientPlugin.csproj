@@ -16,7 +16,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
-    <!-- Keep original behaviour for post/pre build events -->
+    <!-- Keep original behavior for post/pre build events -->
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
@@ -267,11 +267,14 @@
            Text="Could not locate the Space Engineers Bin64 folder. Set &lt;Bin64&gt; in &quot;$(RepoRoot)Directory.Build.props.user&quot;." />
     <Error Condition="!Exists('$(Bin64)')"
            Text="Invalid Bin64 path &quot;$(Bin64)&quot; in &quot;$(RepoRoot)Directory.Build.props[.user]&quot;." />
-    <Warning Condition="'$(Pulsar)' == '' Or !Exists('$(Pulsar)')"
+    <Message Condition="'$(Pulsar)' == ''"
+             Text="Pulsar is not set, the plugin will not be deployed." />
+    <Warning Condition="'$(Pulsar)' != '' And !Exists('$(Pulsar)')"
              Text="Pulsar folder &quot;$(Pulsar)&quot; does not exist, the plugin will not be deployed." />
   </Target>
 
-  <!-- Copies the build output into Pulsar's Local plugin folder:
+  <!-- Copies the build output into Pulsar's Local plugin folder, but only if the Pulsar
+       property is set (see Directory.Build.props):
          net4x (.NET Framework) -> Pulsar/Legacy/Local/$(AssemblyName)
          net5+ (.NET)           -> Pulsar/Interim/Local/$(AssemblyName)
        Each build lands in its own subfolder as plugin.dll next to the plugin.xml
