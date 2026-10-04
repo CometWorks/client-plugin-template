@@ -17,8 +17,9 @@
 3. Run `setup.py`, enter the name of your plugin project in `CapitalizedWords` format
 4. Let `setup.py` auto-detect your install location or fill it in manually
 5. Open the solution in Visual Studio or Rider
-6. Make a test build, the plugin's DLL should be deployed (see the build log for the path)
-7. Test that the empty plugin can be enabled in Pulsar
+6. Make a test build
+7. Start Pulsar with `-sources`, add the repository as a development folder with the Sources button,
+   then test that the empty plugin can be enabled
 8. Replace the contents of this file with the description of your plugin
 9. Follow the TODO comments in the source code and implement your plugin
 
@@ -42,7 +43,8 @@ is shared by all contributors and stays under version control. Bump the version 
 defaults:
 
 - `Bin64` — the folder containing `SpaceEngineers.exe`
-- `Pulsar` — the Pulsar folder the plugin is deployed into after each build
+- `Pulsar` — the Pulsar folder the plugin is deployed into after each build, empty by default
+  (see [Deployment](#deployment))
 
 It optionally imports `Directory.Build.props.user` from the repository root, which is **not
 committed** (matched by `*.user` in `.gitignore`), so each contributor keeps their own local
@@ -53,19 +55,27 @@ To override a path manually, copy the first `PropertyGroup` of `Directory.Build.
 paths. `setup.py` writes that file for you with the auto-detected install location, creating
 it if needed and keeping any other overrides already in it.
 
-Leaving a path empty (or having no `Directory.Build.props.user` at all) falls back to the
+Leaving `Bin64` empty (or having no `Directory.Build.props.user` at all) falls back to the
 auto-detection in `Directory.Build.props`, which reads the Steam registry keys on Windows and
 the usual Steam locations on Linux, then resolves the game through Steam's `libraryfolders.vdf`,
-so installs on a secondary Steam library are found as well. Pulsar defaults to `%AppData%\Pulsar`
-on Windows and `$XDG_CONFIG_HOME/Pulsar` (or `~/.config/Pulsar`) on Linux.
+so installs on a secondary Steam library are found as well. The build fails with a clear message
+if `Bin64` cannot be resolved.
 
-The build fails with a clear message if `Bin64` cannot be resolved, and warns instead of failing
-if the Pulsar folder is missing.
+`Pulsar` is never auto-detected. Leaving it empty turns off deployment.
 
 ### Deployment
 
-Each successful build copies itself into Pulsar's `Local` plugin folder, so there is nothing to
-run by hand:
+Builds don't deploy anything by default. Load your working copy through a Pulsar development
+folder instead (start Pulsar with `-sources`, then use the Sources button), which compiles the
+plugin from source when the game starts.
+
+A deployed DLL shows up in Pulsar as a separate local plugin. If you later disable the development
+folder, that stale copy can still be enabled and shadow the published version of your plugin.
+
+To deploy anyway, set `Pulsar` in `Directory.Build.props.user`, for example to
+`$(APPDATA)\Pulsar` on Windows or `$(HOME)/.config/Pulsar` on Linux, or pass it to a single build
+with `dotnet build -p:Pulsar=...`. Each successful build then copies itself into Pulsar's `Local`
+plugin folder:
 
 | Build     | Deployed to                                    |
 |-----------|------------------------------------------------|
@@ -112,7 +122,7 @@ options than can fit on the screen the dialog will have a vertical scrollbar.
 
 - Build your plugin for both `net10.0` and `net48`, which happens by default on Windows.
 - Make a copy of the `Legacy` folder as `Interim`, it will have a separate set of everything
-  (profiles, `Local` dir). The build then deploys the two target frameworks side by side.
+  (profiles, `Local` dir). With `Pulsar` set, the build deploys the two target frameworks side by side.
 - Now you can start `Interim.exe` with debugging and debug the binary build of your plugin as usual.
 
 ### Accessing internal, protected and private members in game code

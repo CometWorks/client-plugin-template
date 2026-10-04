@@ -33,7 +33,8 @@ USER_PROPS_TEMPLATE = """<Project>
     <!-- Folder containing SpaceEngineers.exe (empty = auto-detect from Steam) -->
     <Bin64>{bin64}</Bin64>
 
-    <!-- Pulsar plugin loader folder used for automatic deployment (empty = auto-detect) -->
+    <!-- Pulsar folder to deploy the plugin into after each build (empty = no deployment),
+         for example $(APPDATA)\\Pulsar on Windows or $(HOME)/.config/Pulsar on Linux -->
     <Pulsar></Pulsar>
   </PropertyGroup>
 </Project>
