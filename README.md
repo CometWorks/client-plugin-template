@@ -1,6 +1,6 @@
 # Space Engineers Client Plugin Template
 
-[Server/Client version of the template](https://github.com/viktor-ferenczi/se-server-plugin-template)
+[Server/Client version of the template](https://github.com/CometWorks/server-plugin-template)
 
 ## Prerequisites
 
@@ -135,7 +135,7 @@ In case of problems read about the [Krafs Publicizer](https://github.com/krafs/P
 
 ### AI assisted plugin development
 
-Please consider using [se-dev-skills](https://github.com/viktor-ferenczi/se-dev-skills/) for better outcomes.
+Please consider using [CometWorks/skills](https://github.com/CometWorks/skills) for better outcomes.
 
 ### Troubleshooting
 
@@ -160,5 +160,5 @@ Please consider using [se-dev-skills](https://github.com/viktor-ferenczi/se-dev-
 
 - Always consider finding a new maintainer, ask around at least once.
 - If you ever abandon the project, then make it clear on its GitHub page.
-- Abandoned projects should be made hidden on PluginHub and Torch's plugin list.
+- Abandoned projects should be made hidden on PluginHub.
 - Keep the code available on GitHub, so it can be forked and continued by others.
