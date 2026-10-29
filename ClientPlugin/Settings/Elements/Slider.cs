@@ -22,6 +22,9 @@ internal class SliderAttribute : Attribute, IElement
     public readonly string Description;
     public string EnabledBy { get; }
 
+    // Shown after the value, for example "ms"
+    public readonly string Unit;
+
     // The dialog's CanHideOthers setter is protected, so a subclass sets it to
     // hide the settings screen behind the dialog.
     private sealed class AmountDialog : MyGuiScreenDialogAmount
@@ -49,7 +52,8 @@ internal class SliderAttribute : Attribute, IElement
         SliderType type = SliderType.Float,
         string label = null,
         string description = null,
-        string enabledBy = null
+        string enabledBy = null,
+        string unit = null
     )
     {
         Min = min;
@@ -59,6 +63,7 @@ internal class SliderAttribute : Attribute, IElement
         Label = label;
         Description = description;
         EnabledBy = enabledBy;
+        Unit = unit;
     }
 
     public List<Control> GetControls(
@@ -87,6 +92,9 @@ internal class SliderAttribute : Attribute, IElement
                     );
                     break;
             }
+
+            if (Unit != null)
+                valueLabel.Text += " " + Unit;
         }
 
         bool SpecifyValue(MyGuiControlSlider element)
