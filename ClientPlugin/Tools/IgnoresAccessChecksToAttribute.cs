@@ -4,7 +4,7 @@
 #if !LOCAL_BUILD
 
 namespace System.Runtime.CompilerServices;
-    
+
 /* Uncomment to enable publicizer support
  
 // This code is required in "production" when Pulsar builds the plugin
