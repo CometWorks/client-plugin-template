@@ -65,7 +65,14 @@ public class Config : INotifyPropertyChanged
         set => SetField(ref integer, value);
     }
 
-    [Slider(-5f, 4.5f, 0.5f, SliderAttribute.SliderType.Float, description: "Float Slider Tooltip")]
+    [Slider(
+        -5f,
+        4.5f,
+        0.5f,
+        SliderAttribute.SliderType.Float,
+        description: "Float Slider Tooltip",
+        unit: "m/s"
+    )]
     public float Number
     {
         get => number;
