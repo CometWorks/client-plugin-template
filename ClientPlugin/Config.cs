@@ -53,7 +53,7 @@ public class Config : INotifyPropertyChanged
         set => SetField(ref toggle, value);
     }
 
-    [Slider(-1f, 10f, 1f, SliderAttribute.SliderType.Integer, description: "Integer Slider Tooltip")]
+    [Slider(-1f, 10f, 1f, SliderAttribute.SliderType.Integer, description: "Integer Slider Tooltip, enabled by the checkbox", enabledBy: nameof(Toggle))]
     public int Integer
     {
         get => integer;

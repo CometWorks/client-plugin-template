@@ -20,6 +20,7 @@ internal class SliderAttribute : Attribute, IElement
     public readonly SliderType Type;
     public readonly string Label;
     public readonly string Description;
+    public string EnabledBy { get; }
 
     // The dialog's CanHideOthers setter is protected, so a subclass sets it to
     // hide the settings screen behind the dialog.
@@ -40,7 +41,7 @@ internal class SliderAttribute : Attribute, IElement
         }
     }
 
-    public SliderAttribute(float min, float max, float step = 1f, SliderType type = SliderType.Float, string label = null, string description = null)
+    public SliderAttribute(float min, float max, float step = 1f, SliderType type = SliderType.Float, string label = null, string description = null, string enabledBy = null)
     {
         Min = min;
         Max = max;
@@ -48,6 +49,7 @@ internal class SliderAttribute : Attribute, IElement
         Type = type;
         Label = label;
         Description = description;
+        EnabledBy = enabledBy;
     }
 
     public List<Control> GetControls(string name, Func<object> propertyGetter, Action<object> propertySetter)
