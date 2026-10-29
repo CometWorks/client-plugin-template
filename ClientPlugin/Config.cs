@@ -1,14 +1,13 @@
-using ClientPlugin.Settings;
-using ClientPlugin.Settings.Elements;
-using Sandbox.Graphics.GUI;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using ClientPlugin.Settings;
+using ClientPlugin.Settings.Elements;
 using ClientPlugin.Settings.Tools;
+using Sandbox.Graphics.GUI;
 using VRage.Input;
 using VRageMath;
-
 
 namespace ClientPlugin;
 
@@ -18,7 +17,7 @@ public enum ExampleEnum
     SecondBeta,
     ThirdGamma,
     AndTheDelta,
-    Epsilon
+    Epsilon,
 }
 
 public class Config : INotifyPropertyChanged
@@ -43,7 +42,6 @@ public class Config : INotifyPropertyChanged
     public readonly string Title = "Config Demo";
 
     [Separator("Some settings")]
-        
     // TODO: Settings dialog controls, one property for each configuration option
 
     [Checkbox(description: "Checkbox Tooltip")]
@@ -53,7 +51,14 @@ public class Config : INotifyPropertyChanged
         set => SetField(ref toggle, value);
     }
 
-    [Slider(-1f, 10f, 1f, SliderAttribute.SliderType.Integer, description: "Integer Slider Tooltip")]
+    [Slider(
+        -1f,
+        10f,
+        1f,
+        SliderAttribute.SliderType.Integer,
+        description: "Integer Slider Tooltip, enabled by the checkbox",
+        enabledBy: nameof(Toggle)
+    )]
     public int Integer
     {
         get => integer;
@@ -82,7 +87,6 @@ public class Config : INotifyPropertyChanged
     }
 
     [Separator("More settings")]
-        
     [Color(description: "RGB color")]
     public Color Color
     {
@@ -107,13 +111,15 @@ public class Config : INotifyPropertyChanged
     [Button(description: "Button Tooltip")]
     public void Button()
     {
-        MyGuiSandbox.AddScreen(MyGuiSandbox.CreateMessageBox(
-            MyMessageBoxStyleEnum.Info,
-            buttonType: MyMessageBoxButtonsType.OK,
-            messageText: new StringBuilder("You clicked me!"),
-            messageCaption: new StringBuilder("Custom Button Function"),
-            size: new Vector2(0.6f, 0.5f)
-        ));
+        MyGuiSandbox.AddScreen(
+            MyGuiSandbox.CreateMessageBox(
+                MyMessageBoxStyleEnum.Info,
+                buttonType: MyMessageBoxButtonsType.OK,
+                messageText: new StringBuilder("You clicked me!"),
+                messageCaption: new StringBuilder("Custom Button Function"),
+                size: new Vector2(0.6f, 0.5f)
+            )
+        );
     }
 
     #endregion
@@ -132,7 +138,8 @@ public class Config : INotifyPropertyChanged
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
         field = value;
         OnPropertyChanged(propertyName);
         return true;

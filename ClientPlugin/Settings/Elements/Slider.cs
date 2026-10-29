@@ -1,7 +1,7 @@
-﻿using Sandbox;
-using Sandbox.Graphics.GUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Sandbox;
+using Sandbox.Graphics.GUI;
 using VRage.Utils;
 
 namespace ClientPlugin.Settings.Elements;
@@ -20,6 +20,7 @@ internal class SliderAttribute : Attribute, IElement
     public readonly SliderType Type;
     public readonly string Label;
     public readonly string Description;
+    public string EnabledBy { get; }
 
     // The dialog's CanHideOthers setter is protected, so a subclass sets it to
     // hide the settings screen behind the dialog.
@@ -34,13 +35,22 @@ internal class SliderAttribute : Attribute, IElement
                 parseAsInteger: slider.Type == SliderType.Integer,
                 backgroundTransition: MySandboxGame.Config.UIBkOpacity,
                 guiTransition: MySandboxGame.Config.UIOpacity,
-                incrementStep: slider.Step)
+                incrementStep: slider.Step
+            )
         {
             CanHideOthers = true;
         }
     }
 
-    public SliderAttribute(float min, float max, float step = 1f, SliderType type = SliderType.Float, string label = null, string description = null)
+    public SliderAttribute(
+        float min,
+        float max,
+        float step = 1f,
+        SliderType type = SliderType.Float,
+        string label = null,
+        string description = null,
+        string enabledBy = null
+    )
     {
         Min = min;
         Max = max;
@@ -48,9 +58,14 @@ internal class SliderAttribute : Attribute, IElement
         Type = type;
         Label = label;
         Description = description;
+        EnabledBy = enabledBy;
     }
 
-    public List<Control> GetControls(string name, Func<object> propertyGetter, Action<object> propertySetter)
+    public List<Control> GetControls(
+        string name,
+        Func<object> propertyGetter,
+        Action<object> propertySetter
+    )
     {
         var valueLabel = new MyGuiControlLabel();
 
@@ -66,7 +81,10 @@ internal class SliderAttribute : Attribute, IElement
 
                 case SliderType.Float:
                     propertySetter(element.Value);
-                    valueLabel.Text = MyValueFormatter.GetFormatedFloat(element.Value, element.LabelDecimalPlaces);
+                    valueLabel.Text = MyValueFormatter.GetFormatedFloat(
+                        element.Value,
+                        element.LabelDecimalPlaces
+                    );
                     break;
             }
         }
@@ -84,7 +102,8 @@ internal class SliderAttribute : Attribute, IElement
             defaultValue: Convert.ToSingle(propertyGetter()),
             minValue: Min,
             maxValue: Max,
-            intValue: Type == SliderType.Integer)
+            intValue: Type == SliderType.Integer
+        )
         {
             MinimumStepOverride = Step,
         };
@@ -108,9 +127,5 @@ internal class SliderAttribute : Attribute, IElement
         };
     }
 
-    public List<Type> SupportedTypes { get; } = new List<Type>()
-    {
-        typeof(float),
-        typeof(int),
-    };
+    public List<Type> SupportedTypes { get; } = new List<Type>() { typeof(float), typeof(int) };
 }

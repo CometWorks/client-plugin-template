@@ -51,7 +51,7 @@ public static class MyPhysicsPatch
         // Make sure to keep the stack balanced and don't delete labels which are still in use.
         // Use ilGenerator.DefineLabel() to define new labels (sometimes required).
         // Use ilGenerator.DeclareLocal() to create new local variables (usually not required).
-        // You can remove the ilGenerator argument if it remains unused. 
+        // You can remove the ilGenerator argument if it remains unused.
         // Some example logic follows:
         var havokThreadCount = Math.Min(16, Environment.ProcessorCount);
         var i = il.FindIndex(ci => ci.opcode == OpCodes.Stloc_0);
