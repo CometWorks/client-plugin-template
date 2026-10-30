@@ -74,27 +74,23 @@ internal class SliderAttribute : Attribute, IElement
     {
         var valueLabel = new MyGuiControlLabel();
 
+        string FormatValue(float value, int decimalPlaces)
+        {
+            var text =
+                Type == SliderType.Integer
+                    ? Convert.ToInt32(value).ToString()
+                    : MyValueFormatter.GetFormatedFloat(value, decimalPlaces);
+            return Unit == null ? text : text + " " + Unit;
+        }
+
         void ValueUpdate(MyGuiControlSlider element)
         {
-            switch (Type)
-            {
-                case SliderType.Integer:
-                    int intValue = Convert.ToInt32(element.Value);
-                    propertySetter(intValue);
-                    valueLabel.Text = intValue.ToString();
-                    break;
+            if (Type == SliderType.Integer)
+                propertySetter(Convert.ToInt32(element.Value));
+            else
+                propertySetter(element.Value);
 
-                case SliderType.Float:
-                    propertySetter(element.Value);
-                    valueLabel.Text = MyValueFormatter.GetFormatedFloat(
-                        element.Value,
-                        element.LabelDecimalPlaces
-                    );
-                    break;
-            }
-
-            if (Unit != null)
-                valueLabel.Text += " " + Unit;
+            valueLabel.Text = FormatValue(element.Value, element.LabelDecimalPlaces);
         }
 
         bool SpecifyValue(MyGuiControlSlider element)
@@ -124,6 +120,15 @@ internal class SliderAttribute : Attribute, IElement
         slider.ValueChanged += ValueUpdate;
         slider.SliderSetValueManual = SpecifyValue;
 
+        // Reserve the width of the widest value text, so the slider leaves room for the value and
+        // its unit wherever it is dragged. The label measures its text when the text is set.
+        var valueWidth = 0f;
+        foreach (var value in new[] { Min, Max })
+        {
+            valueLabel.Text = FormatValue(value, slider.LabelDecimalPlaces);
+            valueWidth = Math.Max(valueWidth, valueLabel.Size.X);
+        }
+
         ValueUpdate(slider);
 
         var label = Tools.Tools.GetLabelOrDefault(name, Label);
@@ -131,7 +136,7 @@ internal class SliderAttribute : Attribute, IElement
         {
             new Control(new MyGuiControlLabel(text: label), minWidth: Control.LabelMinWidth),
             new Control(slider, fillFactor: 1f, rightMargin: 0.005f),
-            new Control(valueLabel, minWidth: 0.06f),
+            new Control(valueLabel, minWidth: valueWidth),
         };
     }
 
