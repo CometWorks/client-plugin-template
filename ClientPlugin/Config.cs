@@ -25,6 +25,8 @@ public class Config : INotifyPropertyChanged
     #region Options
 
     // TODO: Define your configuration options and their default values
+    // An option added later can default differently on a new deployment than on an existing one:
+    // private bool newOption = ConfigStorage.IsNewDeployment;
     private bool toggle = true;
     private int integer = 2;
     private float number = 0.1f;

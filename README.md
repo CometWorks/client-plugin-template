@@ -99,6 +99,19 @@ options than can fit on the screen the dialog will have a vertical scrollbar.
 
 ![Example config dialog](Docs/ConfigDialogExample.png "Example config dialog")
 
+A new option may need a different default on a new deployment than on an existing one, for
+example to turn a feature on only for new users. `ConfigStorage.IsNewDeployment` tells them
+apart: it is `true` if the config file did not exist yet when the config was loaded, and it
+keeps that value after the first save writes the file. Use it as the option's default:
+
+```csharp
+private bool newOption = ConfigStorage.IsNewDeployment;
+```
+
+A config file written before the option existed has no value for it, so the option keeps that
+default, `false` in this case. A config file that exists but can't be read counts as an existing
+deployment too.
+
 ### Debugging
 
 - Always use a debug build if you want to set breakpoints and see variable values.
