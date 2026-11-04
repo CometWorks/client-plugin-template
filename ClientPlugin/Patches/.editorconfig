@@ -1,0 +1,2 @@
+[*.cs]
+resharper_csharp_naming_rule.parameters = aaBb, __+aaBb, ___+aaBb

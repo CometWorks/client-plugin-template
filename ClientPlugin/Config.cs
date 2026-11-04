@@ -20,25 +20,13 @@ public enum ExampleEnum
     Epsilon,
 }
 
+// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class Config : INotifyPropertyChanged
 {
-    #region Options
-
-    // TODO: Define your configuration options and their default values
-    private bool toggle = true;
-    private int integer = 2;
-    private float number = 0.1f;
-    private string text = "Default Text";
-    private ExampleEnum dropdown = ExampleEnum.FirstAlpha;
-    private Color color = Color.Cyan;
-    private Color colorWithAlpha = new Color(0.8f, 0.6f, 0.2f, 0.5f);
-    private Binding keybind = new Binding(MyKeys.None);
-
-    #endregion
-
     #region User interface
 
     // TODO: Settings dialog title
+    // ReSharper disable once ConvertToConstant.Global
     public readonly string Title = "Config Demo";
 
     [Separator("Some settings")]
@@ -47,9 +35,9 @@ public class Config : INotifyPropertyChanged
     [Checkbox(description: "Checkbox Tooltip")]
     public bool Toggle
     {
-        get => toggle;
-        set => SetField(ref toggle, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = true;
 
     [Slider(
         -1f,
@@ -61,9 +49,9 @@ public class Config : INotifyPropertyChanged
     )]
     public int Integer
     {
-        get => integer;
-        set => SetField(ref integer, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = 2;
 
     [Slider(
         -5f,
@@ -75,45 +63,45 @@ public class Config : INotifyPropertyChanged
     )]
     public float Number
     {
-        get => number;
-        set => SetField(ref number, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = 0.1f;
 
     [Textbox(description: "Textbox Tooltip")]
     public string Text
     {
-        get => text;
-        set => SetField(ref text, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = "Default Text";
 
     [Dropdown(description: "Dropdown Tooltip")]
     public ExampleEnum Dropdown
     {
-        get => dropdown;
-        set => SetField(ref dropdown, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = ExampleEnum.FirstAlpha;
 
     [Separator("More settings")]
     [Color(description: "RGB color")]
     public Color Color
     {
-        get => color;
-        set => SetField(ref color, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = Color.Cyan;
 
     [Color(hasAlpha: true, description: "RGBA color")]
     public Color ColorWithAlpha
     {
-        get => colorWithAlpha;
-        set => SetField(ref colorWithAlpha, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = new(0.8f, 0.6f, 0.2f, 0.5f);
 
     [Keybind(description: "Keybind Tooltip - Unbind by right clicking the button")]
     public Binding Keybind
     {
-        get => keybind;
-        set => SetField(ref keybind, value);
-    }
+        get;
+        set => SetField(ref field, value);
+    } = new(MyKeys.None);
 
     [Button(description: "Button Tooltip")]
     public void Button()
@@ -133,7 +121,7 @@ public class Config : INotifyPropertyChanged
 
     #region Property change notification boilerplate
 
-    public static readonly Config Default = new Config();
+    public static readonly Config Default = new();
     public static readonly Config Current = ConfigStorage.Load();
 
     public event PropertyChangedEventHandler PropertyChanged;
@@ -143,6 +131,7 @@ public class Config : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
+    // ReSharper disable once UnusedMethodReturnValue.Local
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value))

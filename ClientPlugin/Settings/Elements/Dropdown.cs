@@ -5,12 +5,17 @@ using Sandbox.Graphics.GUI;
 
 namespace ClientPlugin.Settings.Elements;
 
-internal class DropdownAttribute : Attribute, IElement
+internal class DropdownAttribute(
+    int visibleRows = 20,
+    string label = null,
+    string description = null,
+    string enabledBy = null)
+    : Attribute, IElement
 {
-    public readonly int VisibleRows;
-    public readonly string Label;
-    public readonly string Description;
-    public string EnabledBy { get; }
+    public readonly int VisibleRows = visibleRows;
+    public readonly string Label = label;
+    public readonly string Description = description;
+    public string EnabledBy { get; } = enabledBy;
 
     private static string UnCamelCase(string str)
     {
@@ -21,55 +26,42 @@ internal class DropdownAttribute : Attribute, IElement
         );
     }
 
-    public DropdownAttribute(
-        int visibleRows = 20,
-        string label = null,
-        string description = null,
-        string enabledBy = null
-    )
-    {
-        VisibleRows = visibleRows;
-        Label = label;
-        Description = description;
-        EnabledBy = enabledBy;
-    }
-
     public List<Control> GetControls(
         string name,
         Func<object> propertyGetter,
         Action<object> propertySetter
     )
     {
-        object selectedEnum = propertyGetter();
-        Type choiceEnum = selectedEnum.GetType();
+        var selectedEnum = propertyGetter();
+        var choiceEnum = selectedEnum.GetType();
 
         var dropdown = new MyGuiControlCombobox(toolTip: Description);
-        string[] elements = Enum.GetNames(choiceEnum);
+        var elements = Enum.GetNames(choiceEnum);
 
-        for (int i = 0; i < elements.Length; i++)
+        for (var i = 0; i < elements.Length; i++)
         {
             dropdown.AddItem(i, UnCamelCase(elements[i]));
-        }
-
-        void OnItemSelect()
-        {
-            long key = dropdown.GetSelectedKey();
-            string value = elements[key];
-
-            object enumValue = Enum.Parse(choiceEnum, value);
-            propertySetter(enumValue);
         }
 
         dropdown.ItemSelected += OnItemSelect;
         dropdown.SelectItemByIndex(Convert.ToInt32(selectedEnum));
 
         var label = Tools.Tools.GetLabelOrDefault(name, Label);
-        return new List<Control>()
-        {
+        return
+        [
             new Control(new MyGuiControlLabel(text: label), minWidth: Control.LabelMinWidth),
             new Control(dropdown, fillFactor: 1f),
-        };
+        ];
+
+        void OnItemSelect()
+        {
+            var key = dropdown.GetSelectedKey();
+            var value = elements[key];
+
+            var enumValue = Enum.Parse(choiceEnum, value);
+            propertySetter(enumValue);
+        }
     }
 
-    public List<Type> SupportedTypes { get; } = new List<Type>() { typeof(Enum) };
+    public List<Type> SupportedTypes { get; } = [typeof(Enum)];
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,6 +12,8 @@ using HarmonyLib;
 
 namespace ClientPlugin.Tools;
 
+// ReSharper disable UnusedMember.Global MemberCanBePrivate.Global
+// ReSharper disable once UnusedType.Global
 public static class TranspilerHelpers
 {
     private static readonly bool DisableCodeValidations =
@@ -35,106 +36,107 @@ public static class TranspilerHelpers
             .ToList();
     }
 
-    public static FieldInfo GetField(this List<CodeInstruction> il, FieldInfoPredicate predicate)
+    extension(List<CodeInstruction> il)
     {
-        var ci = il.Find(i =>
-            (i.opcode == OpCodes.Ldfld || i.opcode == OpCodes.Stfld)
-            && i.operand is FieldInfo fi
-            && predicate(fi)
-        );
-        if (ci == null)
-            throw new CodeInstructionNotFound(
-                "No code instruction found loading or storing a field matching the given predicate"
-            );
-
-        return (FieldInfo)ci.operand;
-    }
-
-    public static MethodInfo FindPropertyGetter(this List<CodeInstruction> il, string name)
-    {
-        var ci = il.Find(i =>
-            i.opcode == OpCodes.Call && i.operand is MethodInfo fi && fi.Name == $"get_{name}"
-        );
-        if (ci == null)
-            throw new CodeInstructionNotFound(
-                "No code instruction found getting or setting a property matching the given predicate"
-            );
-
-        return (MethodInfo)ci.operand;
-    }
-
-    public static MethodInfo FindPropertySetter(this List<CodeInstruction> il, string name)
-    {
-        var ci = il.Find(i =>
-            i.opcode == OpCodes.Call && i.operand is MethodInfo fi && fi.Name == $"set_{name}"
-        );
-        if (ci == null)
-            throw new CodeInstructionNotFound(
-                "No code instruction found getting or setting a property matching the given predicate"
-            );
-
-        return (MethodInfo)ci.operand;
-    }
-
-    public static Label GetLabel(this List<CodeInstruction> il, OpcodePredicate predicate)
-    {
-        var ci = il.Find(i => i.operand is Label && predicate(i.opcode));
-        if (ci == null)
-            throw new CodeInstructionNotFound("No label found matching the opcode predicate");
-
-        return (Label)ci.operand;
-    }
-
-    public static void RemoveFieldInitialization(this List<CodeInstruction> il, string name)
-    {
-        var i = il.FindIndex(ci =>
-            ci.opcode == OpCodes.Stfld && ci.operand is FieldInfo fi && fi.Name.Contains(name)
-        );
-        if (i < 2)
-            throw new CodeInstructionNotFound(
-                $"No code instruction found initializing field: {name}"
-            );
-
-        Debug.Assert(il[i - 2].opcode == OpCodes.Ldarg_0);
-        Debug.Assert(il[i - 1].opcode == OpCodes.Newobj);
-
-        il.RemoveRange(i - 2, 3);
-    }
-
-    public static string Hash(this List<CodeInstruction> il)
-    {
-        return il.HashInstructions().CombineHashCodes().ToString("x8");
-    }
-
-    public static void VerifyCodeHash(
-        this List<CodeInstruction> il,
-        MethodBase patchedMethod,
-        string expected
-    )
-    {
-        var actual = il.Hash();
-        if (actual != expected && !DisableCodeValidations)
+        public FieldInfo GetField(FieldInfoPredicate predicate)
         {
-            throw new Exception(
-                $"Detected code change in {patchedMethod.Name}: expected {expected}, actual {actual}"
+            var ci = il.Find(i =>
+                (i.opcode == OpCodes.Ldfld || i.opcode == OpCodes.Stfld)
+                && i.operand is FieldInfo fi
+                && predicate(fi)
             );
-        }
-    }
+            if (ci == null)
+                throw new CodeInstructionNotFound(
+                    "No code instruction found loading or storing a field matching the given predicate"
+                );
 
-    private static string FormatCode(this List<CodeInstruction> il)
-    {
-        var sb = new StringBuilder();
-
-        var hash = il.Hash();
-        sb.Append($"// {hash}\r\n");
-
-        foreach (var ci in il)
-        {
-            sb.Append(ci.ToCodeLine());
-            sb.Append("\r\n");
+            return (FieldInfo)ci.operand;
         }
 
-        return sb.ToString();
+        public MethodInfo FindPropertyGetter(string name)
+        {
+            var ci = il.Find(i =>
+                i.opcode == OpCodes.Call && i.operand is MethodInfo fi && fi.Name == $"get_{name}"
+            );
+            if (ci == null)
+                throw new CodeInstructionNotFound(
+                    "No code instruction found getting or setting a property matching the given predicate"
+                );
+
+            return (MethodInfo)ci.operand;
+        }
+
+        public MethodInfo FindPropertySetter(string name)
+        {
+            var ci = il.Find(i =>
+                i.opcode == OpCodes.Call && i.operand is MethodInfo fi && fi.Name == $"set_{name}"
+            );
+            if (ci == null)
+                throw new CodeInstructionNotFound(
+                    "No code instruction found getting or setting a property matching the given predicate"
+                );
+
+            return (MethodInfo)ci.operand;
+        }
+
+        public Label GetLabel(OpcodePredicate predicate)
+        {
+            var ci = il.Find(i => i.operand is Label && predicate(i.opcode));
+            if (ci == null)
+                throw new CodeInstructionNotFound("No label found matching the opcode predicate");
+
+            return (Label)ci.operand;
+        }
+
+        public void RemoveFieldInitialization(string name)
+        {
+            var i = il.FindIndex(ci =>
+                ci.opcode == OpCodes.Stfld && ci.operand is FieldInfo fi && fi.Name.Contains(name)
+            );
+            if (i < 2)
+                throw new CodeInstructionNotFound(
+                    $"No code instruction found initializing field: {name}"
+                );
+
+            Debug.Assert(il[i - 2].opcode == OpCodes.Ldarg_0);
+            Debug.Assert(il[i - 1].opcode == OpCodes.Newobj);
+
+            il.RemoveRange(i - 2, 3);
+        }
+
+        public string Hash()
+        {
+            return il.HashInstructions().CombineHashCodes().ToString("x8");
+        }
+
+        public void VerifyCodeHash(MethodBase patchedMethod,
+            string expected
+        )
+        {
+            var actual = il.Hash();
+            if (actual != expected && !DisableCodeValidations)
+            {
+                throw new Exception(
+                    $"Detected code change in {patchedMethod.Name}: expected {expected}, actual {actual}"
+                );
+            }
+        }
+
+        private string FormatCode()
+        {
+            var sb = new StringBuilder();
+
+            var hash = il.Hash();
+            sb.Append($"// {hash}\r\n");
+
+            foreach (var ci in il)
+            {
+                sb.Append(ci.ToCodeLine());
+                sb.Append("\r\n");
+            }
+
+            return sb.ToString();
+        }
     }
 
     private static string ToCodeLine(this CodeInstruction ci)
@@ -155,6 +157,7 @@ public static class TranspilerHelpers
         sb.Append(ci.opcode);
 
         var arg = FormatArgument(ci.operand);
+        // ReSharper disable once InvertIf
         if (arg.Length > 0)
         {
             sb.Append(' ');
@@ -215,35 +218,32 @@ public static class TranspilerHelpers
         }
     }
 
-    public static void RecordOriginalCode(
-        this List<CodeInstruction> il,
-        MethodBase patchedMethod = null,
-        [CallerFilePath] string callerFilePath = "",
-        [CallerMemberName] string callerMemberName = ""
-    )
+    extension(List<CodeInstruction> il)
     {
-        RecordCode(il, callerFilePath, callerMemberName, patchedMethod, "original");
-    }
+        public void RecordOriginalCode(MethodBase patchedMethod = null,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            RecordCode(il, callerFilePath, callerMemberName, patchedMethod, "original");
+        }
 
-    public static void RecordPatchedCode(
-        this List<CodeInstruction> il,
-        MethodBase patchedMethod = null,
-        [CallerFilePath] string callerFilePath = "",
-        [CallerMemberName] string callerMemberName = ""
-    )
-    {
-        RecordCode(il, callerFilePath, callerMemberName, patchedMethod, "patched");
-    }
+        public void RecordPatchedCode(MethodBase patchedMethod = null,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            RecordCode(il, callerFilePath, callerMemberName, patchedMethod, "patched");
+        }
 
-    public static void RecordCustomCode(
-        this List<CodeInstruction> il,
-        string suffix,
-        MethodBase patchedMethod = null,
-        [CallerFilePath] string callerFilePath = "",
-        [CallerMemberName] string callerMemberName = ""
-    )
-    {
-        RecordCode(il, callerFilePath, callerMemberName, patchedMethod, suffix);
+        public void RecordCustomCode(string suffix,
+            MethodBase patchedMethod = null,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            RecordCode(il, callerFilePath, callerMemberName, patchedMethod, suffix);
+        }
     }
 
     private static void RecordCode(
@@ -312,7 +312,6 @@ public static class TranspilerHelpers
     }
 }
 
-[SuppressMessage("ReSharper", "UnusedMember.Global")]
 public class CodeInstructionNotFound : Exception
 {
     public CodeInstructionNotFound() { }

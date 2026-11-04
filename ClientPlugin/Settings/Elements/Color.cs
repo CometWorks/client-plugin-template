@@ -10,14 +10,19 @@ using VRageMath;
 
 namespace ClientPlugin.Settings.Elements;
 
-internal class ColorAttribute : Attribute, IElement
+internal class ColorAttribute(
+    bool hasAlpha = false,
+    string label = null,
+    string description = null,
+    string enabledBy = null)
+    : Attribute, IElement
 {
-    public readonly bool HasAlpha;
-    public readonly string Label;
-    public readonly string Description;
-    public string EnabledBy { get; }
+    public readonly bool HasAlpha = hasAlpha;
+    public readonly string Label = label;
+    public readonly string Description = description;
+    public string EnabledBy { get; } = enabledBy;
 
-    private Color originalBorderColor;
+    private Color _originalBorderColor;
 
     // MyGuiScreenDialogColor always starts at Color.White and exposes no way to seed
     // the initial color, so the hosted MyGuiControlColor has to be reached directly.
@@ -27,19 +32,6 @@ internal class ColorAttribute : Attribute, IElement
             "m_color",
             BindingFlags.NonPublic | BindingFlags.Instance
         );
-
-    public ColorAttribute(
-        bool hasAlpha = false,
-        string label = null,
-        string description = null,
-        string enabledBy = null
-    )
-    {
-        HasAlpha = hasAlpha;
-        Label = label;
-        Description = description;
-        EnabledBy = enabledBy;
-    }
 
     public List<Control> GetControls(
         string name,
@@ -67,7 +59,7 @@ internal class ColorAttribute : Attribute, IElement
             Size = new Vector2(0.1f, 0.04f),
         };
 
-        originalBorderColor = textBox.BorderColor;
+        _originalBorderColor = textBox.BorderColor;
 
         textBox.TextChanged += box =>
         {
@@ -77,7 +69,7 @@ internal class ColorAttribute : Attribute, IElement
                     : box.Text.TryParseColorFromHexRgb(out color)
             )
             {
-                box.BorderColor = originalBorderColor;
+                box.BorderColor = _originalBorderColor;
                 box.BorderEnabled = false;
 
                 sample.BorderColor = color;
@@ -103,12 +95,12 @@ internal class ColorAttribute : Attribute, IElement
         sample.SetToolTip(Description);
         textBox.SetToolTip(Description);
 
-        return new List<Control>()
-        {
+        return
+        [
             new Control(new MyGuiControlLabel(text: label), minWidth: Control.LabelMinWidth),
             new Control(sample, offset: new Vector2(0f, 0.005f)),
             new Control(textBox, fixedWidth: textBox.Size.X),
-        };
+        ];
 
         void OpenColorPicker(string caption, MyGuiControlButton swatch, MyGuiControlTextbox box)
         {
@@ -125,7 +117,7 @@ internal class ColorAttribute : Attribute, IElement
                 PropertySetter(color);
 
                 swatch.BorderColor = color;
-                box.BorderColor = originalBorderColor;
+                box.BorderColor = _originalBorderColor;
                 box.BorderEnabled = false;
                 box.Text = HasAlpha ? color.ToHexStringRgba() : color.ToHexStringRgb();
             };
@@ -145,5 +137,5 @@ internal class ColorAttribute : Attribute, IElement
             control.SetColor(new Color(color.R, color.G, color.B));
     }
 
-    public List<Type> SupportedTypes { get; } = new List<Type>() { typeof(Color) };
+    public List<Type> SupportedTypes { get; } = [typeof(Color)];
 }

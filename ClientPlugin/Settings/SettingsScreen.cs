@@ -9,8 +9,8 @@ namespace ClientPlugin.Settings;
 internal class SettingsScreen : MyGuiScreenBase
 {
     public readonly string FriendlyName;
-    public Func<List<MyGuiControlBase>> GetControls;
-    public Action UpdateControls;
+    public readonly Func<List<MyGuiControlBase>> GetControls;
+    public readonly Action UpdateControls;
 
     public override string GetFriendlyName() => FriendlyName;
 

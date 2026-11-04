@@ -6,6 +6,7 @@ using Mono.Cecil.Cil;
 
 namespace ClientPlugin.Tools;
 
+// ReSharper disable UnusedMember.Global MemberCanBePrivate.Global
 public static class Hashing
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -6,7 +6,16 @@ using VRage.Utils;
 
 namespace ClientPlugin.Settings.Elements;
 
-internal class SliderAttribute : Attribute, IElement
+internal class SliderAttribute(
+    float min,
+    float max,
+    float step = 1f,
+    SliderAttribute.SliderType type = SliderAttribute.SliderType.Float,
+    string label = null,
+    string description = null,
+    string enabledBy = null,
+    string unit = null)
+    : Attribute, IElement
 {
     public enum SliderType
     {
@@ -14,16 +23,16 @@ internal class SliderAttribute : Attribute, IElement
         Float,
     }
 
-    public readonly float Min;
-    public readonly float Max;
-    public readonly float Step;
-    public readonly SliderType Type;
-    public readonly string Label;
-    public readonly string Description;
-    public string EnabledBy { get; }
+    public readonly float Min = min;
+    public readonly float Max = max;
+    public readonly float Step = step;
+    public readonly SliderType Type = type;
+    public readonly string Label = label;
+    public readonly string Description = description;
+    public string EnabledBy { get; } = enabledBy;
 
     // Shown after the value, for example "ms"
-    public readonly string Unit;
+    public readonly string Unit = unit;
 
     // The dialog's CanHideOthers setter is protected, so a subclass sets it to
     // hide the settings screen behind the dialog.
@@ -45,27 +54,6 @@ internal class SliderAttribute : Attribute, IElement
         }
     }
 
-    public SliderAttribute(
-        float min,
-        float max,
-        float step = 1f,
-        SliderType type = SliderType.Float,
-        string label = null,
-        string description = null,
-        string enabledBy = null,
-        string unit = null
-    )
-    {
-        Min = min;
-        Max = max;
-        Step = step;
-        Type = type;
-        Label = label;
-        Description = description;
-        EnabledBy = enabledBy;
-        Unit = unit;
-    }
-
     public List<Control> GetControls(
         string name,
         Func<object> propertyGetter,
@@ -73,33 +61,6 @@ internal class SliderAttribute : Attribute, IElement
     )
     {
         var valueLabel = new MyGuiControlLabel();
-
-        string FormatValue(float value, int decimalPlaces)
-        {
-            var text =
-                Type == SliderType.Integer
-                    ? Convert.ToInt32(value).ToString()
-                    : MyValueFormatter.GetFormatedFloat(value, decimalPlaces);
-            return Unit == null ? text : text + " " + Unit;
-        }
-
-        void ValueUpdate(MyGuiControlSlider element)
-        {
-            if (Type == SliderType.Integer)
-                propertySetter(Convert.ToInt32(element.Value));
-            else
-                propertySetter(element.Value);
-
-            valueLabel.Text = FormatValue(element.Value, element.LabelDecimalPlaces);
-        }
-
-        bool SpecifyValue(MyGuiControlSlider element)
-        {
-            var screen = new AmountDialog(this, Convert.ToSingle(propertyGetter()));
-            screen.OnConfirmed += (value) => element.Value = value;
-            MyGuiSandbox.AddScreen(screen);
-            return true;
-        }
 
         var slider = new MyGuiControlSlider(
             toolTip: Description,
@@ -132,13 +93,40 @@ internal class SliderAttribute : Attribute, IElement
         ValueUpdate(slider);
 
         var label = Tools.Tools.GetLabelOrDefault(name, Label);
-        return new List<Control>()
-        {
+        return
+        [
             new Control(new MyGuiControlLabel(text: label), minWidth: Control.LabelMinWidth),
             new Control(slider, fillFactor: 1f, rightMargin: 0.005f),
             new Control(valueLabel, minWidth: valueWidth),
-        };
+        ];
+
+        bool SpecifyValue(MyGuiControlSlider element)
+        {
+            var screen = new AmountDialog(this, Convert.ToSingle(propertyGetter()));
+            screen.OnConfirmed += value => element.Value = value;
+            MyGuiSandbox.AddScreen(screen);
+            return true;
+        }
+
+        void ValueUpdate(MyGuiControlSlider element)
+        {
+            if (Type == SliderType.Integer)
+                propertySetter(Convert.ToInt32(element.Value));
+            else
+                propertySetter(element.Value);
+
+            valueLabel.Text = FormatValue(element.Value, element.LabelDecimalPlaces);
+        }
+
+        string FormatValue(float value, int decimalPlaces)
+        {
+            var text =
+                Type == SliderType.Integer
+                    ? Convert.ToInt32(value).ToString()
+                    : MyValueFormatter.GetFormatedFloat(value, decimalPlaces);
+            return Unit == null ? text : text + " " + Unit;
+        }
     }
 
-    public List<Type> SupportedTypes { get; } = new List<Type>() { typeof(float), typeof(int) };
+    public List<Type> SupportedTypes { get; } = [typeof(float), typeof(int)];
 }

@@ -22,10 +22,10 @@ internal class SettingsGenerator
 {
     public readonly string Name;
 
-    private readonly List<AttributeInfo> attributes;
-    private List<List<Control>> controls;
-    private List<(Func<bool> IsEnabled, List<Control> Row)> enabledRows = new();
-    public SettingsScreen Dialog { get; private set; }
+    private readonly List<AttributeInfo> _attributes;
+    private List<List<Control>> _controls;
+    private List<(Func<bool> IsEnabled, List<Control> Row)> _enabledRows = [];
+    public SettingsScreen Dialog { get; }
     public Layout ActiveLayout { get; private set; }
 
     private static bool ValidateType(Type type, List<Type> typesList)
@@ -36,9 +36,9 @@ internal class SettingsGenerator
     private static Delegate GetDelegate(MethodInfo methodInfo)
     {
         // Reconstruct the type
-        Type[] methodArgs = methodInfo.GetParameters().Select(p => p.ParameterType).ToArray();
-        Type type = Expression.GetDelegateType(
-            methodArgs.Concat(new[] { methodInfo.ReturnType }).ToArray()
+        var methodArgs = methodInfo.GetParameters().Select(p => p.ParameterType).ToArray();
+        var type = Expression.GetDelegateType(
+            [.. methodArgs, methodInfo.ReturnType]
         );
 
         // Create a delegate
@@ -47,9 +47,9 @@ internal class SettingsGenerator
 
     public SettingsGenerator()
     {
-        attributes = ExtractAttributes();
+        _attributes = ExtractAttributes();
         Name = Config.Current.Title;
-        ActiveLayout = new None(() => controls);
+        ActiveLayout = new None(() => _controls);
         Dialog = new SettingsScreen(
             Name,
             OnRecreateControls,
@@ -70,7 +70,7 @@ internal class SettingsGenerator
         where T : Layout
     {
         ActiveLayout = (T)
-            Activator.CreateInstance(typeof(T), (Func<List<List<Control>>>)(() => controls));
+            Activator.CreateInstance(typeof(T), (Func<List<List<Control>>>)(() => _controls));
         Dialog.UpdateSize(ActiveLayout.SettingsPanelSize);
     }
 
@@ -81,16 +81,16 @@ internal class SettingsGenerator
 
     private void CreateConfigControls()
     {
-        controls = new List<List<Control>>();
-        enabledRows = new List<(Func<bool>, List<Control>)>();
+        _controls = [];
+        _enabledRows = [];
 
-        foreach (AttributeInfo info in attributes)
+        foreach (var info in _attributes)
         {
             var row = info.ElementType.GetControls(info.Name, info.Getter, info.Setter);
-            controls.Add(row);
+            _controls.Add(row);
 
             if (info.IsEnabled != null)
-                enabledRows.Add((info.IsEnabled, row));
+                _enabledRows.Add((info.IsEnabled, row));
         }
 
         UpdateEnabled();
@@ -99,7 +99,7 @@ internal class SettingsGenerator
     // Called on every update of the dialog, so a row follows its enabling option while the dialog is open
     private void UpdateEnabled()
     {
-        foreach (var (isEnabled, row) in enabledRows)
+        foreach (var (isEnabled, row) in _enabledRows)
         {
             var enabled = isEnabled();
             foreach (var control in row)
@@ -133,27 +133,25 @@ internal class SettingsGenerator
             var name = propertyInfo.Name;
             foreach (var attribute in propertyInfo.GetCustomAttributes())
             {
-                if (attribute is IElement element)
+                if (attribute is not IElement element) continue;
+                if (!ValidateType(propertyInfo.PropertyType, element.SupportedTypes))
                 {
-                    if (!ValidateType(propertyInfo.PropertyType, element.SupportedTypes))
-                    {
-                        throw new Exception(
-                            $"Element {element.GetType().Name} for {name} expects "
-                                + $"{string.Join("/", element.SupportedTypes)} but "
-                                + $"recieved {propertyInfo.PropertyType.FullName}"
-                        );
-                    }
-
-                    var info = new AttributeInfo()
-                    {
-                        ElementType = element,
-                        Name = name,
-                        Getter = Getter,
-                        Setter = Setter,
-                        IsEnabled = GetIsEnabled(element, name),
-                    };
-                    config.Add(info);
+                    throw new Exception(
+                        $"Element {element.GetType().Name} for {name} expects "
+                        + $"{string.Join("/", element.SupportedTypes)} but "
+                        + $"recieved {propertyInfo.PropertyType.FullName}"
+                    );
                 }
+
+                var info = new AttributeInfo
+                {
+                    ElementType = element,
+                    Name = name,
+                    Getter = Getter,
+                    Setter = Setter,
+                    IsEnabled = GetIsEnabled(element, name),
+                };
+                config.Add(info);
             }
 
             continue;
@@ -164,32 +162,30 @@ internal class SettingsGenerator
 
         foreach (var methodInfo in typeof(Config).GetMethods())
         {
-            string name = methodInfo.Name;
-            Delegate method = GetDelegate(methodInfo);
+            var name = methodInfo.Name;
+            var method = GetDelegate(methodInfo);
 
             foreach (var attribute in methodInfo.GetCustomAttributes())
             {
-                if (attribute is IElement element)
+                if (attribute is not IElement element) continue;
+                if (!ValidateType(typeof(Delegate), element.SupportedTypes))
                 {
-                    if (!ValidateType(typeof(Delegate), element.SupportedTypes))
-                    {
-                        throw new Exception(
-                            $"Element {element.GetType().Name} for {name} expects "
-                                + $"{string.Join("/", element.SupportedTypes)} but "
-                                + $"recieved {typeof(Delegate).FullName}"
-                        );
-                    }
-
-                    var info = new AttributeInfo()
-                    {
-                        ElementType = element,
-                        Name = name,
-                        Getter = () => method,
-                        Setter = null,
-                        IsEnabled = GetIsEnabled(element, name),
-                    };
-                    config.Add(info);
+                    throw new Exception(
+                        $"Element {element.GetType().Name} for {name} expects "
+                        + $"{string.Join("/", element.SupportedTypes)} but "
+                        + $"received {typeof(Delegate).FullName}"
+                    );
                 }
+
+                var info = new AttributeInfo
+                {
+                    ElementType = element,
+                    Name = name,
+                    Getter = () => method,
+                    Setter = null,
+                    IsEnabled = GetIsEnabled(element, name),
+                };
+                config.Add(info);
             }
         }
 
