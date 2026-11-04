@@ -3,7 +3,6 @@ using Sandbox.Game.Multiplayer;
 
 namespace ClientPlugin.Patches;
 
-// ReSharper disable once UnusedType.Global
 [HarmonyPatch(typeof(MyPlayerCollection))]
 public static class MyPlayerCollectionPatch
 {

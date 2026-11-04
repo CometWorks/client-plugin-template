@@ -11,7 +11,6 @@ using ClientPlugin.Tools;
 
 namespace ClientPlugin.Patches;
 
-// ReSharper disable once UnusedType.Global
 [HarmonyPatch(typeof(MyPhysics))]
 public static class MyPhysicsPatch
 {
@@ -22,11 +21,9 @@ public static class MyPhysicsPatch
     // Alternatively patch unconditionally, but make the functionality configurable
     // inside your logic, so changing the config does not need restarting the game.
     // There is a trade-off with performance and plugin compatibility here.
-    // ReSharper disable once UnusedMember.Local
     [HarmonyPrepare]
     private static bool Prepare() => Config.Toggle;
     
-    // ReSharper disable once UnusedMember.Local
     [HarmonyTranspiler]
     [HarmonyPatch(nameof(MyPhysics.LoadData))]
     private static IEnumerable<CodeInstruction> LoadDataTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase patchedMethod, ILGenerator ilGenerator)
