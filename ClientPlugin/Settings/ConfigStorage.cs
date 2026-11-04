@@ -14,11 +14,11 @@ public static class ConfigStorage
     private static string ConfigFilePath =>
         Path.Combine(ConfigDirectory, ConfigFileName);
 
-    private static bool? isNewDeployment;
+    private static bool? _isNewDeployment;
 
     // True if the config file did not exist yet when this was first read, which means a new
     // deployment. It keeps its value after the first save writes the file.
-    public static bool IsNewDeployment => isNewDeployment ??= !File.Exists(ConfigFilePath);
+    public static bool IsNewDeployment => _isNewDeployment ??= !File.Exists(ConfigFilePath);
 
     public static void Save(Config config)
     {
