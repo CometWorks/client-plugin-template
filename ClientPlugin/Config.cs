@@ -23,12 +23,16 @@ public enum ExampleEnum
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class Config : INotifyPropertyChanged
 {
-    #region User interface
+    #region Options & User interface
 
     // TODO: Settings dialog title
     // ReSharper disable once ConvertToConstant.Global
     public readonly string Title = "Config Demo";
-
+    
+    // TODO: Define your configuration options and their default values
+    // An option added later can default differently on a new deployment than on an existing one:
+    // private bool newOption = ConfigStorage.IsNewDeployment;
+    
     [Separator("Some settings")]
     // TODO: Settings dialog controls, one property for each configuration option
 
