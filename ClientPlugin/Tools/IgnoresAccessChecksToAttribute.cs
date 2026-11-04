@@ -9,14 +9,9 @@ namespace System.Runtime.CompilerServices;
  
 // This code is required in "production" when Pulsar builds the plugin
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public sealed class IgnoresAccessChecksToAttribute : Attribute
+public sealed class IgnoresAccessChecksToAttribute(string assemblyName) : Attribute
 {
-    public IgnoresAccessChecksToAttribute(string assemblyName)
-    {
-        AssemblyName = assemblyName;
-    }
-
-    public string AssemblyName { get; }
+    public string AssemblyName { get; } = assemblyName;
 }
 
 */
