@@ -11,25 +11,23 @@ using ClientPlugin.Tools;
 
 namespace ClientPlugin.Patches;
 
-// ReSharper disable once UnusedType.Global
 [HarmonyPatch(typeof(MyPhysics))]
 public static class MyPhysicsPatch
 {
     private static Config Config => Config.Current;
     
-    // ReSharper disable once UnusedMember.Local
+    // Make your patch configurable.
+    // Here it needs restarting the game, since patching happens only once.
+    // Alternatively patch unconditionally, but make the functionality configurable
+    // inside your logic, so changing the config does not need restarting the game.
+    // There is a trade-off with performance and plugin compatibility here.
+    [HarmonyPrepare]
+    private static bool Prepare() => Config.Toggle;
+    
     [HarmonyTranspiler]
     [HarmonyPatch(nameof(MyPhysics.LoadData))]
     private static IEnumerable<CodeInstruction> LoadDataTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase patchedMethod, ILGenerator ilGenerator)
     {
-        // Make your patch configurable.
-        // Here it needs restarting the game, since patching happens only once.
-        // Alternatively patch unconditionally, but make the functionality configurable
-        // inside your logic, so changing the config does not need restarting the game.
-        // There is a trade-off with performance and plugin compatibility here.
-        if (!Config.Toggle)
-            return instructions;
-        
         // This call will create a .il file next to this patch file with the original
         // IL code of the patched method. Compare that with the modified IL code (see below).
         // It is good practice to commit these IL files into your project for later reference,

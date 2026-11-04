@@ -5,15 +5,10 @@ using VRageMath;
 
 namespace ClientPlugin.Settings.Elements;
 
-internal class SeparatorAttribute : Attribute, IElement
+internal class SeparatorAttribute(string caption = null) : Attribute, IElement
 {
-    public readonly string Caption;
+    public readonly string Caption = caption;
     public string EnabledBy => null;
-
-    public SeparatorAttribute(string caption = null)
-    {
-        Caption = caption;
-    }
 
     public List<Control> GetControls(
         string name,
@@ -34,12 +29,12 @@ internal class SeparatorAttribute : Attribute, IElement
             BorderColor = lineColor,
         };
 
-        return new List<Control>()
-        {
+        return
+        [
             new Control(label, rightMargin: 0.005f),
             new Control(line, fillFactor: 1f, offset: new Vector2(0f, 0.003f)),
-        };
+        ];
     }
 
-    public List<Type> SupportedTypes { get; } = new List<Type>() { typeof(object) };
+    public List<Type> SupportedTypes { get; } = [typeof(object)];
 }

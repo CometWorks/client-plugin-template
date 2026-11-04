@@ -13,12 +13,12 @@ using VRage.Plugins;
 #endif
 namespace ClientPlugin;
 
-// ReSharper disable once UnusedType.Global
+// ReSharper disable once UnusedType.Global ClassNeverInstantiated.Global
 public class Plugin : IPlugin
 {
     public const string Name = "ClientPluginTemplate";
     public static Plugin Instance { get; private set; }
-    private SettingsGenerator settingsGenerator;
+    private SettingsGenerator _settingsGenerator;
 
     [System.Runtime.CompilerServices.MethodImpl(
         System.Runtime.CompilerServices.MethodImplOptions.NoInlining
@@ -26,7 +26,7 @@ public class Plugin : IPlugin
     public void Init(object gameInstance)
     {
         Instance = this;
-        Instance.settingsGenerator = new SettingsGenerator();
+        Instance._settingsGenerator = new SettingsGenerator();
 
         // TODO: Put your one time initialization code here.
         var harmony = new Harmony(Name);
@@ -49,8 +49,8 @@ public class Plugin : IPlugin
     // ReSharper disable once UnusedMember.Global
     public void OpenConfigDialog()
     {
-        Instance.settingsGenerator.SetLayout<Simple>();
-        MyGuiSandbox.AddScreen(Instance.settingsGenerator.Dialog);
+        Instance._settingsGenerator.SetLayout<Simple>();
+        MyGuiSandbox.AddScreen(Instance._settingsGenerator.Dialog);
     }
 
     //TODO: Uncomment and use this method to load asset files

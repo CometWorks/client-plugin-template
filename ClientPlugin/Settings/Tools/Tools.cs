@@ -8,8 +8,8 @@ namespace ClientPlugin.Settings.Tools;
 
 public static class Tools
 {
-    private static readonly Regex UpperCaseWordRegex = new Regex(
-        @"[A-Z][a-z]*",
+    private static readonly Regex UpperCaseWordRegex = new(
+        "[A-Z][a-z]*",
         RegexOptions.Compiled
     );
 
@@ -31,58 +31,64 @@ public static class Tools
         return string.Join(" ", words);
     }
 
-    private static readonly Regex RxHexColorRgbRegex = new Regex(
+    private static readonly Regex RxHexColorRgbRegex = new(
         "([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})",
         RegexOptions.IgnoreCase
     );
-    private static readonly Regex RxHexColorRgbaRegex = new Regex(
+    private static readonly Regex RxHexColorRgbaRegex = new(
         "([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})",
         RegexOptions.IgnoreCase
     );
 
-    public static string ToHexStringRgb(this Color color)
+    extension(Color color)
     {
-        return $"{color.R:X2}{color.G:X2}{color.B:X2}";
-    }
-
-    public static string ToHexStringRgba(this Color color)
-    {
-        return $"{color.R:X2}{color.G:X2}{color.B:X2}{color.A:X2}";
-    }
-
-    public static bool TryParseColorFromHexRgb(this string hex, out Color color)
-    {
-        var match = RxHexColorRgbRegex.Match(hex);
-        if (!match.Success)
+        public string ToHexStringRgb()
         {
-            color = Color.Black;
-            return false;
+            return $"{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
-        color = new Color(
-            Convert.ToInt16(match.Groups[1].Value, 16),
-            Convert.ToInt16(match.Groups[2].Value, 16),
-            Convert.ToInt16(match.Groups[3].Value, 16),
-            255
-        );
-        return true;
+        public string ToHexStringRgba()
+        {
+            return $"{color.R:X2}{color.G:X2}{color.B:X2}{color.A:X2}";
+        }
     }
 
-    public static bool TryParseColorFromHexRgba(this string hex, out Color color)
+    extension(string hex)
     {
-        var match = RxHexColorRgbaRegex.Match(hex);
-        if (!match.Success)
+        public bool TryParseColorFromHexRgb(out Color color)
         {
-            color = Color.Transparent;
-            return false;
+            var match = RxHexColorRgbRegex.Match(hex);
+            if (!match.Success)
+            {
+                color = Color.Black;
+                return false;
+            }
+
+            color = new Color(
+                Convert.ToInt16(match.Groups[1].Value, 16),
+                Convert.ToInt16(match.Groups[2].Value, 16),
+                Convert.ToInt16(match.Groups[3].Value, 16),
+                255
+            );
+            return true;
         }
 
-        color = new Color(
-            Convert.ToInt16(match.Groups[1].Value, 16),
-            Convert.ToInt16(match.Groups[2].Value, 16),
-            Convert.ToInt16(match.Groups[3].Value, 16),
-            Convert.ToInt16(match.Groups[4].Value, 16)
-        );
-        return true;
+        public bool TryParseColorFromHexRgba(out Color color)
+        {
+            var match = RxHexColorRgbaRegex.Match(hex);
+            if (!match.Success)
+            {
+                color = Color.Transparent;
+                return false;
+            }
+
+            color = new Color(
+                Convert.ToInt16(match.Groups[1].Value, 16),
+                Convert.ToInt16(match.Groups[2].Value, 16),
+                Convert.ToInt16(match.Groups[3].Value, 16),
+                Convert.ToInt16(match.Groups[4].Value, 16)
+            );
+            return true;
+        }
     }
 }

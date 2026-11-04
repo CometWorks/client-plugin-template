@@ -6,7 +6,7 @@ using VRageMath;
 
 namespace ClientPlugin.Settings.Layouts;
 
-internal abstract class Layout
+internal abstract class Layout(Func<List<List<Control>>> getControls)
 {
     /// <summary>
     /// Size of the UI screen this layout is responsible for.
@@ -16,12 +16,7 @@ internal abstract class Layout
     /// <summary>
     /// Call this to recieve a list of rows of controls.
     /// </summary>
-    protected readonly Func<List<List<Control>>> GetControls;
-
-    protected Layout(Func<List<List<Control>>> getControls)
-    {
-        GetControls = getControls;
-    }
+    protected readonly Func<List<List<Control>>> GetControls = getControls;
 
     /// <summary>
     /// Recreates all of the layout-specific controls.

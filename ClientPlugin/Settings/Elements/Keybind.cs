@@ -13,21 +13,15 @@ using VRageMath;
 
 namespace ClientPlugin.Settings.Elements;
 
-internal class KeybindAttribute : Attribute, IElement
+internal class KeybindAttribute(string label = null, string description = null, string enabledBy = null)
+    : Attribute, IElement
 {
-    public readonly string Label;
-    public readonly string Description;
-    public string EnabledBy { get; }
+    public readonly string Label = label;
+    public readonly string Description = description;
+    public string EnabledBy { get; } = enabledBy;
 
-    private Func<Binding> propertyGetter;
-    private Action<Binding> propertySetter;
-
-    public KeybindAttribute(string label = null, string description = null, string enabledBy = null)
-    {
-        Label = label;
-        Description = description;
-        EnabledBy = enabledBy;
-    }
+    private Func<Binding> _propertyGetter;
+    private Action<Binding> _propertySetter;
 
     public List<Control> GetControls(
         string name,
@@ -35,10 +29,10 @@ internal class KeybindAttribute : Attribute, IElement
         Action<object> propertySetter
     )
     {
-        this.propertyGetter = () => (Binding)propertyGetter();
-        this.propertySetter = b => propertySetter(b);
+        _propertyGetter = () => (Binding)propertyGetter();
+        _propertySetter = b => propertySetter(b);
 
-        var binding = this.propertyGetter();
+        var binding = _propertyGetter();
 
         var label = new MyGuiControlLabel(text: Tools.Tools.GetLabelOrDefault(name, Label));
 
@@ -46,25 +40,25 @@ internal class KeybindAttribute : Attribute, IElement
         var alt = new MyGuiControlCheckbox(isChecked: binding.Alt, toolTip: "Alt");
         var shift = new MyGuiControlCheckbox(isChecked: binding.Shift, toolTip: "Shift");
 
-        ctrl.IsCheckedChanged += (cb) =>
+        ctrl.IsCheckedChanged += cb =>
         {
-            var b = this.propertyGetter();
+            var b = _propertyGetter();
             b.Ctrl = cb.IsChecked;
-            this.propertySetter(b);
+            _propertySetter(b);
         };
 
-        alt.IsCheckedChanged += (cb) =>
+        alt.IsCheckedChanged += cb =>
         {
-            var b = this.propertyGetter();
+            var b = _propertyGetter();
             b.Alt = cb.IsChecked;
-            this.propertySetter(b);
+            _propertySetter(b);
         };
 
-        shift.IsCheckedChanged += (cb) =>
+        shift.IsCheckedChanged += cb =>
         {
-            var b = this.propertyGetter();
+            var b = _propertyGetter();
             b.Shift = cb.IsChecked;
-            this.propertySetter(b);
+            _propertySetter(b);
         };
 
         var control = new MyControl(
@@ -93,28 +87,22 @@ internal class KeybindAttribute : Attribute, IElement
             UserData = new ControlButtonData(control, MyGuiInputDeviceEnum.Keyboard),
         };
 
-        return new List<Control>()
-        {
+        return
+        [
             new Control(label, minWidth: Control.LabelMinWidth),
             new Control(button),
             new Control(ctrl, offset: new Vector2(0f, -0.0025f)),
             new Control(alt, offset: new Vector2(0f, -0.0025f)),
             new Control(shift, offset: new Vector2(0f, -0.0025f)),
-        };
+        ];
     }
 
-    public List<Type> SupportedTypes { get; } = new List<Type>() { typeof(Binding) };
+    public List<Type> SupportedTypes { get; } = [typeof(Binding)];
 
-    private class ControlButtonData
+    private class ControlButtonData(MyControl control, MyGuiInputDeviceEnum device)
     {
-        public readonly MyControl Control;
-        public readonly MyGuiInputDeviceEnum Device;
-
-        public ControlButtonData(MyControl control, MyGuiInputDeviceEnum device)
-        {
-            Control = control;
-            Device = device;
-        }
+        public readonly MyControl Control = control;
+        public readonly MyGuiInputDeviceEnum Device = device;
     }
 
     private void OnRebindClick(MyGuiControlButton button)
@@ -135,27 +123,16 @@ internal class KeybindAttribute : Attribute, IElement
                 screenClass,
                 BindingFlags.CreateInstance,
                 null,
-                new object[] { userData.Device, userData.Control, messageText },
+                [userData.Device, userData.Control, messageText],
                 null
             );
 
-        editBindingDialog.Closed += (s, isUnloading) => StoreControl(button);
+        editBindingDialog.Closed += (_, _) => StoreControl(button);
         MyGuiSandbox.AddScreen(editBindingDialog);
     }
 
     private void OnUnbindClick(MyGuiControlButton button)
     {
-        void Callback(MyGuiScreenMessageBox.ResultEnum result)
-        {
-            if (result == MyGuiScreenMessageBox.ResultEnum.NO)
-                return;
-
-            var userData = (ControlButtonData)button.UserData;
-            userData.Control.SetControl(userData.Device, MyKeys.None);
-
-            StoreControl(button);
-        }
-
         MyGuiScreenBase alert = MyGuiSandbox.CreateMessageBox(
             MyMessageBoxStyleEnum.Info,
             buttonType: MyMessageBoxButtonsType.YES_NO,
@@ -167,6 +144,18 @@ internal class KeybindAttribute : Attribute, IElement
         );
 
         MyGuiSandbox.AddScreen(alert);
+        return;
+
+        void Callback(MyGuiScreenMessageBox.ResultEnum result)
+        {
+            if (result == MyGuiScreenMessageBox.ResultEnum.NO)
+                return;
+
+            var userData = (ControlButtonData)button.UserData;
+            userData.Control.SetControl(userData.Device, MyKeys.None);
+
+            StoreControl(button);
+        }
     }
 
     private void StoreControl(MyGuiControlButton button)
@@ -175,9 +164,9 @@ internal class KeybindAttribute : Attribute, IElement
         var userData = (ControlButtonData)button.UserData;
         userData.Control.AppendBoundButtonNames(ref output, userData.Device);
 
-        var binding = propertyGetter();
+        var binding = _propertyGetter();
         binding.Key = userData.Control.GetKeyboardControl();
-        propertySetter(binding);
+        _propertySetter(binding);
 
         MyControl.AppendUnknownTextIfNeeded(
             ref output,

@@ -13,77 +13,74 @@ using Mono.Collections.Generic;
 
 namespace ClientPlugin.Tools;
 
+// ReSharper disable UnusedMember.Global MemberCanBePrivate.Global
+// ReSharper disable once UnusedType.Global
 public static class PreloaderHelpers
 {
     public delegate bool CodeInstructionPredicate(Instruction ci);
 
-    public static int FindFirstIndex(
-        this Collection<Instruction> il,
-        CodeInstructionPredicate predicate
-    )
+    extension(Collection<Instruction> il)
     {
-        return il.Select((instruction, index) => new { Instruction = instruction, Index = index })
-            .Where(pair => predicate(pair.Instruction))
-            .Select(pair => pair.Index)
-            .DefaultIfEmpty(-1)
-            .First(); // Do NOT simplify this call on .NET 10, because that won't build on .Net Framework 4.8
-    }
-
-    public static int FindLastIndex(
-        this Collection<Instruction> il,
-        CodeInstructionPredicate predicate
-    )
-    {
-        return il.Select((instruction, index) => new { Instruction = instruction, Index = index })
-            .Where(pair => predicate(pair.Instruction))
-            .Select(pair => pair.Index)
-            .DefaultIfEmpty(-1)
-            .Last(); // Do NOT simplify this call on .NET 10, because that won't build on .Net Framework 4.8
-    }
-
-    public static List<int> FindAllIndex(
-        this Collection<Instruction> il,
-        CodeInstructionPredicate predicate
-    )
-    {
-        return il.Select((instruction, index) => new { Instruction = instruction, Index = index })
-            .Where(pair => predicate(pair.Instruction))
-            .Select(pair => pair.Index)
-            .ToList();
-    }
-
-    public static string Hash(this Collection<Instruction> instructions)
-    {
-        return instructions.HashInstructions().CombineHashCodes().ToString("x8");
-    }
-
-    public static void VerifyCodeHash(
-        this Collection<Instruction> il,
-        MethodDefinition patchedMethod,
-        string expected
-    )
-    {
-        var actual = il.Hash();
-        if (actual != expected)
-            throw new Exception(
-                $"Prepatch: Detected code change in {patchedMethod.Name}: expected {expected}, actual {actual}"
-            );
-    }
-
-    private static string FormatCode(this Collection<Instruction> instructions)
-    {
-        var sb = new StringBuilder();
-
-        var hash = instructions.Hash();
-        sb.Append($"// {hash}\r\n");
-
-        foreach (var instr in instructions)
+        public int FindFirstIndex(CodeInstructionPredicate predicate
+        )
         {
-            sb.Append(instr.ToCodeLine());
-            sb.Append("\r\n");
+            return il.Select((instruction, index) => new { Instruction = instruction, Index = index })
+                .Where(pair => predicate(pair.Instruction))
+                .Select(pair => pair.Index)
+                .DefaultIfEmpty(-1)
+                .First(); // Do NOT simplify this call on .NET 10, because that won't build on .Net Framework 4.8
         }
 
-        return sb.ToString();
+        public int FindLastIndex(CodeInstructionPredicate predicate
+        )
+        {
+            return il.Select((instruction, index) => new { Instruction = instruction, Index = index })
+                .Where(pair => predicate(pair.Instruction))
+                .Select(pair => pair.Index)
+                .DefaultIfEmpty(-1)
+                .Last(); // Do NOT simplify this call on .NET 10, because that won't build on .Net Framework 4.8
+        }
+
+        public List<int> FindAllIndex(CodeInstructionPredicate predicate
+        )
+        {
+            return il.Select((instruction, index) => new { Instruction = instruction, Index = index })
+                .Where(pair => predicate(pair.Instruction))
+                .Select(pair => pair.Index)
+                .ToList();
+        }
+
+        public string Hash()
+        {
+            return il.HashInstructions().CombineHashCodes().ToString("x8");
+        }
+
+        public void VerifyCodeHash(MethodDefinition patchedMethod,
+            string expected
+        )
+        {
+            var actual = il.Hash();
+            if (actual != expected)
+                throw new Exception(
+                    $"Prepatch: Detected code change in {patchedMethod.Name}: expected {expected}, actual {actual}"
+                );
+        }
+
+        private string FormatCode()
+        {
+            var sb = new StringBuilder();
+
+            var hash = il.Hash();
+            sb.Append($"// {hash}\r\n");
+
+            foreach (var instr in il)
+            {
+                sb.Append(instr.ToCodeLine());
+                sb.Append("\r\n");
+            }
+
+            return sb.ToString();
+        }
     }
 
     private static string ToCodeLine(this Instruction instr)
@@ -93,6 +90,7 @@ public static class PreloaderHelpers
         sb.Append($"IL_{instr.Offset:0000}: {instr.OpCode}");
 
         var arg = FormatOperand(instr.Operand);
+        // ReSharper disable once InvertIf
         if (arg.Length > 0)
         {
             sb.Append(' ');
@@ -207,38 +205,39 @@ public static class PreloaderHelpers
 
     private static string FormatTypeReference(TypeReference typeRef)
     {
-        if (typeRef == null)
-            return "void";
-
-        // Handle generic instances
-        if (typeRef is GenericInstanceType genericType)
+        switch (typeRef)
         {
-            var baseName = genericType.ElementType.Name;
-            // Remove `1, `2 etc from generic type names
-            var tickIndex = baseName.IndexOf('`');
-            if (tickIndex > 0)
-                baseName = baseName.Substring(0, tickIndex);
+            case null:
+                return "void";
+            
+            // Handle generic instances
+            case GenericInstanceType genericType:
+            {
+                var baseName = genericType.ElementType.Name;
+                // Remove `1, `2 etc from generic type names
+                var tickIndex = baseName.IndexOf('`');
+                if (tickIndex > 0)
+                    baseName = baseName.Substring(0, tickIndex);
 
-            return $"{genericType.Namespace}.{baseName}<{string.Join(", ", genericType.GenericArguments.Select(FormatTypeReference))}>";
+                return $"{genericType.Namespace}.{baseName}<{string.Join(", ", genericType.GenericArguments.Select(FormatTypeReference))}>";
+            }
+            
+            // Handle arrays
+            case ArrayType arrayType:
+                return FormatTypeReference(arrayType.ElementType) + "[]";
+            
+            // Handle by reference
+            case ByReferenceType byRefType:
+                return FormatTypeReference(byRefType.ElementType) + "&";
+            
+            // Handle pointers
+            case PointerType pointerType:
+                return FormatTypeReference(pointerType.ElementType) + "*";
+            
+            default:
+                // Simple type
+                return !string.IsNullOrEmpty(typeRef.Namespace) ? $"{typeRef.Namespace}.{typeRef.Name}" : typeRef.Name;
         }
-
-        // Handle arrays
-        if (typeRef is ArrayType arrayType)
-            return FormatTypeReference(arrayType.ElementType) + "[]";
-
-        // Handle by reference
-        if (typeRef is ByReferenceType byRefType)
-            return FormatTypeReference(byRefType.ElementType) + "&";
-
-        // Handle pointers
-        if (typeRef is PointerType pointerType)
-            return FormatTypeReference(pointerType.ElementType) + "*";
-
-        // Simple type
-        if (!string.IsNullOrEmpty(typeRef.Namespace))
-            return $"{typeRef.Namespace}.{typeRef.Name}";
-
-        return typeRef.Name;
     }
 
     private static string FormatFieldReference(FieldReference fieldRef)
@@ -256,35 +255,32 @@ public static class PreloaderHelpers
         return sb.ToString();
     }
 
-    public static void RecordOriginalCode(
-        this Collection<Instruction> instructions,
-        MethodDefinition method,
-        [CallerFilePath] string callerFilePath = "",
-        [CallerMemberName] string callerMemberName = ""
-    )
+    extension(Collection<Instruction> instructions)
     {
-        RecordCode(instructions, method, callerFilePath, callerMemberName, "original");
-    }
+        public void RecordOriginalCode(MethodDefinition method,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            RecordCode(instructions, method, callerFilePath, callerMemberName, "original");
+        }
 
-    public static void RecordPatchedCode(
-        this Collection<Instruction> instructions,
-        MethodDefinition method,
-        [CallerFilePath] string callerFilePath = "",
-        [CallerMemberName] string callerMemberName = ""
-    )
-    {
-        RecordCode(instructions, method, callerFilePath, callerMemberName, "patched");
-    }
+        public void RecordPatchedCode(MethodDefinition method,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            RecordCode(instructions, method, callerFilePath, callerMemberName, "patched");
+        }
 
-    public static void RecordCustomCode(
-        this Collection<Instruction> instructions,
-        MethodDefinition method,
-        string suffix,
-        [CallerFilePath] string callerFilePath = "",
-        [CallerMemberName] string callerMemberName = ""
-    )
-    {
-        RecordCode(instructions, method, callerFilePath, callerMemberName, suffix);
+        public void RecordCustomCode(MethodDefinition method,
+            string suffix,
+            [CallerFilePath] string callerFilePath = "",
+            [CallerMemberName] string callerMemberName = ""
+        )
+        {
+            RecordCode(instructions, method, callerFilePath, callerMemberName, suffix);
+        }
     }
 
     private static void RecordCode(

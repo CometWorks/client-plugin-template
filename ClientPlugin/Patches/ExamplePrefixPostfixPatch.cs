@@ -1,13 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using HarmonyLib;
 using Sandbox.Game.Multiplayer;
 
 namespace ClientPlugin.Patches;
 
-// ReSharper disable once UnusedType.Global
 [HarmonyPatch(typeof(MyPlayerCollection))]
-[SuppressMessage("ReSharper", "UnusedType.Global")]
-[SuppressMessage("ReSharper", "UnusedMember.Global")]
 public static class MyPlayerCollectionPatch
 {
     private static Config Config => Config.Current;

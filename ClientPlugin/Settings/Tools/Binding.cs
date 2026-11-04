@@ -2,20 +2,12 @@ using VRage.Input;
 
 namespace ClientPlugin.Settings.Tools;
 
-public struct Binding
+public struct Binding(MyKeys key, bool ctrl = false, bool alt = false, bool shift = false)
 {
-    public MyKeys Key;
-    public bool Ctrl;
-    public bool Alt;
-    public bool Shift;
-
-    public Binding(MyKeys key, bool ctrl = false, bool alt = false, bool shift = false)
-    {
-        Key = key;
-        Ctrl = ctrl;
-        Alt = alt;
-        Shift = shift;
-    }
+    public MyKeys Key = key;
+    public bool Ctrl = ctrl;
+    public bool Alt = alt;
+    public bool Shift = shift;
 
     public override string ToString()
     {
